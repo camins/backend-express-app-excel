@@ -5,10 +5,7 @@ class ExcelController {
   async store(req, res) {
     const obj = xlsx.parse(req.file.path);
     const rows = [];
-    let writeStr = {
-      desc: '',
-      total: 0,
-    };
+    const writeStr = [];
 
     for (let i = 0; i < obj.length; i++) {
       const sheet = obj[i];
@@ -18,10 +15,21 @@ class ExcelController {
         rows.push(sheet.data[j]);
       }
     }
-    console.log(rows);
+
     for (let i = 0; i < rows.length; i++) {
-      console.log(rows[i][1]);
-      if (writeStr.desc) writeStr += `${rows[i].join(',')}\n`;
+      if (
+        writeStr &&
+        writeStr.length > 0 &&
+        writeStr.some((x) => x.desc === rows[i][0])
+      ) {
+        writeStr.forEach((x) => {
+          if (x.desc === rows[i][0]) {
+            x.total += rows[i][1];
+          }
+        });
+      } else {
+        writeStr.push({ desc: rows[i][0], total: rows[i][1] });
+      }
     }
 
     return res.json({
